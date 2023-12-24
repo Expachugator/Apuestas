@@ -12,7 +12,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Supongamos que 'paises' es una lista de los nombres de todos los países para los que tienes datos
-paises = ["alemania", "espana", "francia"]
+paises = ["francia"]
 
 # Definir una función para determinar si hay un gol en la primera mitad
 def gol_primera_mitad(goles):
@@ -53,7 +53,7 @@ for pais in paises:
     df = encoder.fit(df).transform(df)
 
     # Crear una columna de índice
-    window = Window.orderBy(df['Temporada'].desc(), df['Jornada'].desc())
+    window = Window.partitionBy('Temporada').orderBy(df['Temporada'].desc(), df['Jornada'].desc())
     df = df.withColumn('indice', row_number().over(window))
 
     # Crear una columna de peso
@@ -70,6 +70,10 @@ for pais in paises:
 
     # Ajustar el modelo a los datos
     modelo = glm.fit(df)
+
+    # Guardar el modelo
+    # modelo.write().overwrite().save(f"modelos/{pais}_modelo")
+    modelo.save(f"modelos/{pais}_modelo")
 
     # Imprimir los coeficientes y la intersección del modelo
     print(f"Modelo para {pais}:")
